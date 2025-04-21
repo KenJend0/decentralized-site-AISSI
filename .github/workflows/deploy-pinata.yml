@@ -1,20 +1,35 @@
-- name: Pin site folder to IPFS
-  env:
-    PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
-    PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
-  run: |
-    node << 'EOF'
-    // Import the SDK (default export is a class)
-    const PinataSDK = require('@pinata/sdk').default || require('@pinata/sdk');
-    // Instantiate it with `new`
-    const pinata = new PinataSDK(
-      process.env.PINATA_API_KEY,
-      process.env.PINATA_API_SECRET
-    );
-    (async () => {
-      const result = await pinata.pinFromFS('site', {
-        pinataMetadata: { name: 'decentralized-site' }
-      });
-      console.log(' Pinned CID:', result.IpfsHash);
-    })();
-    EOF
+name: Deploy to IPFS via Pinata
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  pinata-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Pinata SDK
+        run: npm install @pinata/sdk
+
+      - name: Pin site folder to IPFS
+        env:
+          PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
+          PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
+        run: |
+          node << 'EOF'
+          const PinataSDK = require('@pinata/sdk').default || require('@pinata/sdk');
+          const pinata = new PinataSDK(
+            process.env.PINATA_API_KEY,
+            process.env.PINATA_API_SECRET
+          );
+          (async () => {
+            const result = await pinata.pinFromFS('site', {
+              pinataMetadata: { name: 'decentralized-site' }
+            });
+            console.log(' Pinned CID:', result.IpfsHash);
+          })();
+          EOF
