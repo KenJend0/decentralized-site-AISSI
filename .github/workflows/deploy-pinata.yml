@@ -1,0 +1,31 @@
+name: Deploy to IPFS via Pinata
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  pinata-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Pinata SDK
+        run: npm install @pinata/sdk
+
+      - name: Pin site folder to IPFS
+        env:
+          PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
+          PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
+        run: |
+          node << 'EOF'
+          const pinataSDK = require('@pinata/sdk');
+          const pinata = pinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_API_SECRET);
+          (async () => {
+            const result = await pinata.pinFromFS('site', {
+              pinataMetadata: { name: 'decentralized-site' }
+            });
+            console.log(' Pinned CID:', result.IpfsHash);
+          })();
+          EOF
