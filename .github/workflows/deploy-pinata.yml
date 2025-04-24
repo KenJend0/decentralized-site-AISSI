@@ -15,21 +15,29 @@ jobs:
       - name: Install Pinata SDK
         run: npm install @pinata/sdk
 
-      - name: Pin site folder to IPFS
-        env:
-          PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
-          PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
-        run: |
-          node << 'EOF'
-          const PinataSDK = require('@pinata/sdk').default || require('@pinata/sdk');
+      - name: Pin site folder to IPFS via Pinata SDK
+    env:
+      PINATA_API_KEY: ${{ secrets.PINATA_API_KEY }}
+      PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
+    run: |
+      node << 'EOF'
+      import PinataSDK from '@pinata/sdk';
+      import path from 'path';
+
+      (async () => {
+        try {
           const pinata = new PinataSDK(
             process.env.PINATA_API_KEY,
             process.env.PINATA_API_SECRET
           );
-          (async () => {
-            const result = await pinata.pinFromFS('site', {
-              pinataMetadata: { name: 'decentralized-site' }
-            });
-            console.log(' Pinned CID:', result.IpfsHash);
-          })();
-          EOF
+          const sitePath = path.resolve(process.cwd(), 'site');
+          const result = await pinata.pinFromFS(sitePath, {
+            pinataMetadata: { name: 'decentralized-site' }
+          });
+          console.log('Pinned CID:', result.IpfsHash);
+        } catch (err) {
+          console.error('Pinata error:', err);
+          process.exit(1);
+        }
+      })();
+      EOF
