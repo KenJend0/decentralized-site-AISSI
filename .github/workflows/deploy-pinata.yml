@@ -34,8 +34,8 @@ jobs:
           PINATA_API_SECRET: ${{ secrets.PINATA_API_SECRET }}
         run: |
           node << 'EOF'
-          import PinataSDK from '@pinata/sdk';
-          import path from 'path';
+          const PinataSDK = require('@pinata/sdk').default || require('@pinata/sdk');
+          const path = require('path');
 
           (async () => {
             try {
