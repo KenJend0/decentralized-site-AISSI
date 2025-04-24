@@ -22,8 +22,10 @@ jobs:
           node-version: '18'
 
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Pinata SDK
+        run: |
+          npm init -y
+          npm install @pinata/sdk
 
 
       - name: Pin site folder to IPFS
